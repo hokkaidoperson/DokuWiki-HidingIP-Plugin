@@ -1,3 +1,3 @@
 <?PHP
 
-$lang['notloggedin']      = '非ログインユーザー';
+$lang['notloggedin']      = '髱槭Ο繧ｰ繧､繝ｳ繝ｦ繝ｼ繧ｶ繝ｼ';
