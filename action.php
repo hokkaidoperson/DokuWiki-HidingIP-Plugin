@@ -34,6 +34,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
     public function recentform(Doku_Event $event, $param) {
 
         $display = $this->getLang('notloggedin');
+        $flag = FALSE;
 
         // Reminder / メモ書き (en, ja)
         //
@@ -53,11 +54,13 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
                 }
             }
-            
+
             $flag = FALSE;
 
-            if ($ref['class'] == 'user') {
-                $flag = TRUE;
+            if (is_array($ref)) {
+                if (array_key_exists('class', $ref)) {
+                    if ($ref['class'] == 'user') $flag = TRUE;
+                }
             }
         }
     }
@@ -68,6 +71,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
     public function revisionform(Doku_Event $event, $param) {
 
         $display = $this->getLang('notloggedin');
+        $flag = FALSE;
 
         // Reminder / メモ書き (en, ja)
         //
@@ -89,8 +93,10 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
             $flag = FALSE;
 
-            if ($ref['class'] == 'user') {
-                $flag = TRUE;
+            if (is_array($ref)) {
+                if (array_key_exists('class', $ref)) {
+                    if ($ref['class'] == 'user') $flag = TRUE;
+                }
             }
         }
     }
@@ -104,8 +110,9 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
         global $INPUT;
         if ($INPUT->str('do') != 'diff') return;
 
+
         $display = $this->getLang('notloggedin');
-        
+
         // Reminder / メモ書き (en, ja)
         //
         // The function is similar to the functions above, but it'll modify HTML directly.
@@ -132,15 +139,15 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         // Reminder / メモ書き (en, ja)
         //
-        // Simply replace the texts that is likely IPs.
+        // If $event->data['username'] is likely an IP, the plugin will write $event->data['name'].
         // You can't use the user name like IPs (that'll be accidentally replaced. e.g.: 3.57.2.13 ).
         //
-        // 単純に、IPアドレスと思しきユーザー名を置き換えます。
+        // $event->data['username']がIPアドレスと思われる場合、$event->data['name']を書き込みます。
         // IPアドレスっぽいユーザー名だった場合、ログイン中であってもうっかり置き換えられてしまいます。
         // 　　例：3.57.2.13
 
 
-        $event->data = preg_replace('/(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/', $display, $event->data);
+        if (preg_match('/(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/' , $event->data['username']) == 1) $event->data['name'] = $display;
     }
 
 
