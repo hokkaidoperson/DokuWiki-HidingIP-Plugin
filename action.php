@@ -22,10 +22,15 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
      * 5. Showing Diff
      */
     public function register(Doku_Event_Handler $controller) {
-        $controller->register_hook('HTML_RECENTFORM_OUTPUT', 'BEFORE', $this, 'recentform', array());
-        $controller->register_hook('HTML_REVISIONSFORM_OUTPUT', 'BEFORE', $this, 'revisionform', array());
-        $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'tplcontent', array());
-        $controller->register_hook('COMMON_USER_LINK', 'BEFORE', $this, 'userlink', array());
+        $whentohide = explode(',', $this->getConf('whenToHide'));
+        $whentohide = array_map('trim', $whentohide);
+        $whentohide = array_unique($whentohide);
+        $whentohide = array_filter($whentohide);
+
+        if (array_search('recent', $whentohide) !== FALSE) $controller->register_hook('HTML_RECENTFORM_OUTPUT', 'BEFORE', $this, 'recentform', array());
+        if (array_search('revision', $whentohide) !== FALSE) $controller->register_hook('HTML_REVISIONSFORM_OUTPUT', 'BEFORE', $this, 'revisionform', array());
+        if (array_search('diff', $whentohide) !== FALSE) $controller->register_hook('TPL_CONTENT_DISPLAY', 'BEFORE', $this, 'tplcontent', array());
+        if (array_search('userlink', $whentohide) !== FALSE ) $controller->register_hook('COMMON_USER_LINK', 'BEFORE', $this, 'userlink', array());
     }
 
     /**
@@ -35,6 +40,11 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         $display = $this->getLang('notloggedin');
         $flag = FALSE;
+        $showip = FALSE;
+
+        // Allowed to see IPs?
+        if ($this->getConf('rightToSeeIP') == 'mg' && auth_ismanager()) $showip = TRUE;
+        if ($this->getConf('rightToSeeIP') == 'sp' && auth_isadmin()) $showip = TRUE;
 
         // Reminder / メモ書き (en, ja)
         //
@@ -48,7 +58,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         foreach ($event->data->_content as $key => $ref) {
             if ($flag == TRUE and strpos($ref,'<bdo dir="ltr">') !== FALSE) {
-                if (auth_ismanager()) {
+                if ($showip == TRUE) {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi> <bdo dir="ltr">(' . substr($ref, strlen('<bdo dir="ltr">'), -6) . ')</bdo>';
                 } else {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
@@ -72,6 +82,11 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         $display = $this->getLang('notloggedin');
         $flag = FALSE;
+        $showip = FALSE;
+
+        // Allowed to see IPs?
+        if ($this->getConf('rightToSeeIP') == 'mg' && auth_ismanager()) $showip = TRUE;
+        if ($this->getConf('rightToSeeIP') == 'sp' && auth_isadmin()) $showip = TRUE;
 
         // Reminder / メモ書き (en, ja)
         //
@@ -82,12 +97,12 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         foreach ($event->data->_content as $key => $ref) {
             if ($flag == TRUE and strpos($ref,'<bdo dir="ltr">') !== FALSE) {
-                if (auth_ismanager()) {
+                if ($showip == TRUE) {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi> <bdo dir="ltr">(' . substr($ref, strlen('<bdo dir="ltr">'), -6) . ')</bdo>';
                 } else {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
                 }
-            } else if ($flag == TRUE and preg_match('/(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/' , $ref) == 1) {
+            } else if ($flag == TRUE and preg_match('/<bdi>(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])</bdi>/' , $ref) == 1) {
                $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
             }
 
@@ -112,6 +127,11 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
 
         $display = $this->getLang('notloggedin');
+        $showip = FALSE;
+
+        // Allowed to see IPs?
+        if ($this->getConf('rightToSeeIP') == 'mg' && auth_ismanager()) $showip = TRUE;
+        if ($this->getConf('rightToSeeIP') == 'sp' && auth_isadmin()) $showip = TRUE;
 
         // Reminder / メモ書き (en, ja)
         //
@@ -122,7 +142,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
         $ref = $event->data;
 
         if (strpos($ref,'<span class="user"><bdo dir="ltr">') !== FALSE) {
-            if (auth_ismanager()) {
+            if ($showip == TRUE) {
                 $event->data = preg_replace('/<span class="user"><bdo dir="ltr">((([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5]))<\/bdo>/', '<span class="user"><bdi>' . $display . '</bdi> <bdo dir="ltr">($1)</bdo>', $ref);
             } else {
                 $event->data = preg_replace('/<span class="user"><bdo dir="ltr">(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])<\/bdo>/', '<span class="user"><bdi>' . $display . '</bdi>', $ref);
@@ -139,7 +159,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
 
         // Reminder / メモ書き (en, ja)
         //
-        // If $event->data['username'] is likely an IP, the plugin will write $event->data['name'].
+        // If $event->data['username'] is likely to be an IP, the plugin will write $event->data['name'].
         // You can't use the user name like IPs (that'll be accidentally replaced. e.g.: 3.57.2.13 ).
         //
         // $event->data['username']がIPアドレスと思われる場合、$event->data['name']を書き込みます。
@@ -147,7 +167,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
         // 　　例：3.57.2.13
 
 
-        if (preg_match('/(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])/' , $event->data['username']) == 1) $event->data['name'] = $display;
+        if (preg_match('/^(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$/' , $event->data['username']) == 1) $event->data['name'] = $display;
     }
 
 

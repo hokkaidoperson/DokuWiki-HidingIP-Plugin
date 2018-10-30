@@ -1,7 +1,7 @@
 base hidingip
 author HokkaidoPerson
 email dosankomali@yahoo.co.jp
-date 2018-10-24
+date 2018-10-30
 name Hiding IPs Plugin
 desc Avoid IP addresses shown to public.  Admins can view IPs even with this plugin.
 url http://www.dokuwiki.org/plugin:hidingip
