@@ -102,7 +102,7 @@ class action_plugin_hidingip extends DokuWiki_Action_Plugin {
                 } else {
                     $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
                 }
-            } else if ($flag == TRUE and preg_match('/<bdi>(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])</bdi>/' , $ref) == 1) {
+            } else if ($flag == TRUE and preg_match('/<bdi>(([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([1-9]?[0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])<\/bdi>/' , $ref) == 1) {
                $event->data->_content[$key] = '<bdi>' . $display . '</bdi>';
             }
 
